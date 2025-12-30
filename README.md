@@ -1,0 +1,2 @@
+# SeriesTracker
+Web series tracker
