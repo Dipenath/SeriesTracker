@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hobi Web Clone - Dynamic</title>
+    <title>WEB TRACKER - Dynamic</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -23,8 +23,21 @@
             padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
             position: sticky; top: 0; background-color: var(--bg-color); z-index: 100;
         }
-        header h1 { font-size: 20px; font-weight: 800; }
+        header h1 {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
         .header-icons i { font-size: 18px; color: var(--text-secondary); margin-left: 15px; }
+        .sort-btn { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding:6px; border-radius:8px; }
+        .sort-btn:hover { background: rgba(255,255,255,0.02); color: #fff; }
+        .sort-menu { position:absolute; top:56px; right:12px; background: #0b0b0d; border: 1px solid rgba(255,255,255,0.04); padding:10px; border-radius:10px; display:flex; flex-direction:column; gap:8px; z-index:200; min-width:200px; }
+        .sort-menu.hidden { display:none; }
+        .sort-menu .chip { text-align:left; }
         .add-btn {
             background: linear-gradient(135deg, #a855f7, #ec4899); color: white; border: none;
             width: 32px; height: 32px; border-radius: 8px; margin-left: 10px; cursor: pointer;
@@ -49,15 +62,63 @@
         .progress-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #7c3aed, #d946ef); width: 0%; transition: width 1s ease-in-out; }
         
         .progress-text { display: flex; justify-content: space-between; font-size: 11px; color: #666; }
+        .action-row { display:flex; justify-content:flex-start; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; }
         .episode-btn {
             background-color: #1c1c1e; border: 1px solid #333; color: var(--text-secondary);
             padding: 6px 12px; border-radius: 6px; font-size: 12px; width: fit-content; margin-top: 5px; font-weight: 600; cursor: pointer;
         }
+        .episode-btn.small { padding: 4px 8px; font-size: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color: #ddd; margin-top:6px; }
+        .episode-btn.remove { background: rgba(255,255,255,0.02); margin-left:8px; padding:4px 8px; }
+        .add-btn { background: linear-gradient(90deg,#7c3aed,#d946ef); color: #fff; border: none; }
 
         /* Search & States */
         .search-bar-container { background-color: #1c1c1e; padding: 10px; border-radius: 10px; display: flex; align-items: center; margin-bottom: 20px; }
         .search-bar-container input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; font-size: 16px; outline: none; }
+        .search-btn { background: linear-gradient(90deg,#7c3aed,#d946ef); border: none; color: #fff; padding: 6px 8px; border-radius: 8px; margin-left: 8px; cursor: pointer; font-weight: 700; width:38px; height:36px; display:inline-flex; align-items:center; justify-content:center; }
+        .search-btn i { font-size:14px; }
         .hidden { display: none; }
+
+        /* Discover Toolbar */
+        .discover-toolbar { background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; margin-bottom: 16px; }
+        .dt-cats { display:flex; gap:8px; margin-bottom:8px; }
+        .dt-cats .dt-cat { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: #aaa; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:700; }
+        .dt-cats .dt-cat.active { background: linear-gradient(90deg,#7b4397,#dc2430); color: #fff; border: none; }
+        .dt-filters { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+        .dt-genres { display:flex; gap:8px; flex-wrap:wrap; }
+        .chip { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: #aaa; padding:6px 10px; border-radius: 999px; cursor:pointer; font-size:13px; }
+        .chip.active { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.08); }
+
+        /* Details modal - seasons & episodes */
+        .details-top { display:flex; flex-direction:column; gap:10px; }
+        .details-overview { color: #ccc; }
+        .details-actions { display:flex; gap:8px; margin-top:6px; }
+        .details-seasons { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+        .season-row { display:flex; justify-content:space-between; align-items:center; padding:10px; background: rgba(255,255,255,0.01); border-radius:8px; cursor:pointer; }
+        .season-left { display:flex; align-items:center; gap:10px; }
+        .season-title { font-weight:700; }
+        .season-progress-wrap { display:flex; gap:8px; align-items:center; }
+        .season-progress-bar { width:120px; height:8px; background:#222; border-radius:6px; overflow:hidden; }
+        .season-progress-bar .progress-fill { height:100%; background:linear-gradient(90deg,#7c3aed,#d946ef); width:0%; transition:width .4s ease; }
+        .season-count { font-size:12px; color:#999; }
+        .episode-list { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+        .episode-row { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:6px; background: rgba(255,255,255,0.01); }
+        .ep-left { display:flex; align-items:center; gap:10px; }
+        .ep-title { font-weight:600; }
+        .ep-sub { font-size:12px; color:#999; }
+        .ep-checkbox { width:22px; height:22px; border-radius:50%; border:1px solid rgba(255,255,255,0.06); background:transparent; display:inline-block; }
+        .ep-checkbox.on { background:linear-gradient(90deg,#7c3aed,#d946ef); border:none; }
+        .details-header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+
+        /* Series progress and next-up */
+        .modal-series-progress { margin-top:8px; display:flex; flex-direction:column; gap:8px; }
+        .series-progress-row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+        .series-progress-bar { flex:1; height:8px; background:#222; border-radius:8px; overflow:hidden; }
+        .series-progress-fill { height:100%; background:linear-gradient(90deg,#7c3aed,#d946ef); width:0%; transition: width .5s ease; }
+        .series-progress-text { font-size:12px; color:#999; width:80px; text-align:right; }
+        .series-next { font-size:13px; color:#bfc7ff; }
+        .dt-providers { display:flex; gap:8px; align-items:center; }
+        #provider-input { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: #fff; padding:6px 10px; border-radius:8px; outline:none; min-width:160px; }
+        .provider-list { display:flex; gap:8px; flex-wrap:wrap; }
 
         /* Bottom Nav */
         .bottom-nav {
@@ -74,36 +135,132 @@
             background: #333; color: white; padding: 10px 20px; border-radius: 20px;
             font-size: 12px; opacity: 0; transition: opacity 0.3s; pointer-events: none;
         }
-    </style>
+
+        /* Toast visible helper */
+        .toast.show { opacity: 1; pointer-events: auto; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:300; opacity:0; pointer-events:none; transition: opacity .18s ease; }
+        .modal-overlay.show { opacity:1; pointer-events:auto; }
+        .modal { background: #0f1014; padding: 18px; border-radius: 12px; width: 90%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transform: translateY(8px); opacity:0; transition: transform .18s ease, opacity .18s ease; }
+        .modal-overlay.show .modal { transform: translateY(0); opacity:1; }
+        .modal-body { color: #ddd; margin-bottom: 12px; font-size: 15px; }
+        .modal-actions { display:flex; justify-content:flex-end; gap:8px; }
+        .modal-overlay.hidden { display: none; }
+
+        /* Badge for air date */
+        .badge-date { display:inline-block; background: rgba(255,255,255,0.03); color: #ccc; padding:4px 8px; border-radius: 999px; font-size:12px; margin-left:8px; }
+        .network-logo { height:18px; width:auto; vertical-align:middle; margin-left:8px; display:none; }
+        .badge-rating { display:inline-block; background: rgba(255,255,255,0.03); color:#ffd166; padding:4px 6px; border-radius:6px; font-weight:700; font-size:12px; margin-left:8px; }
+
+        /* Load more */
+        .load-more-container { text-align:center; margin-top: 12px; }
+        .load-more { background: linear-gradient(90deg,#7b4397,#dc2430); color:white; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; }
+
+        /* Watchlist controls */
+        .watchlist-controls { display:flex; gap:8px; margin-bottom: 12px; align-items:center; }
+        .watchlist-controls .chip { padding:6px 10px; border-radius:8px; cursor:pointer; }
+    </style> 
 </head>
 <body>
 
     <header>
         <div class="header-icons"><i class="fas fa-ellipsis-h"></i></div>
-        <h1 id="page-title">Hobi</h1>
-        <div style="display:flex; align-items:center;">
-            <div class="header-icons"><i class="fas fa-sliders-h"></i></div>
-            <button class="add-btn" onclick="showToast('Add Show feature coming soon!')"><i class="fas fa-plus"></i></button>
+        <h1 id="page-title">WEB TRACKER</h1>
+        <div style="display:flex; align-items:center; position:relative;">
+            <div class="header-icons"><button class="sort-btn" onclick="toggleSortMenu()" aria-haspopup="true" aria-expanded="false"><i class="fas fa-sliders-h"></i></button></div>
+            <button class="add-btn" onclick="openSearch()"><i class="fas fa-plus"></i></button>
+
+            <div id="sort-menu" class="sort-menu hidden" role="menu" aria-label="Watchlist sort options">
+                <button class="chip" onclick="applySort('recently-watched')">Recently watched</button>
+                <button class="chip" onclick="applySort('newest-episode')">Newest episode</button>
+                <button class="chip" onclick="applySort('alphabetical')">Alphabetical</button>
+                <button class="chip" onclick="applySort('total-episodes')">Total episodes</button>
+                <button class="chip" onclick="applySort('episodes-left')">Episodes left to watch</button>
+            </div>
         </div>
     </header>
 
     <div id="app-content">
-        <div id="view-myshows"></div> 
+        <div id="view-watchlist"></div>
+        <div id="view-myshows" class="hidden"></div>
 
         <div id="view-discover" class="hidden">
             <div class="search-bar-container">
                 <i class="fas fa-search" style="color: #666;"></i>
                 <input type="text" id="search-input" placeholder="Search TV shows..." onkeyup="handleSearch(event)">
+                <button class="search-btn" type="button" onclick="doSearch()" aria-label="Search"><i class="fas fa-search"></i></button>
             </div>
+
+            <div class="discover-toolbar">
+                <div class="dt-cats">
+                    <button class="dt-cat active" data-cat="trending">Trending Now</button>
+                    <button class="dt-cat" data-cat="returning">Returning This Week</button>
+                    <button class="dt-cat" data-cat="new">New This Month</button>
+                    <button class="dt-cat" data-cat="popular">Most Popular</button>
+                    <button class="dt-cat" data-cat="rating">By Rating</button>
+                    <span id="results-chip" class="chip hidden" style="margin-left:8px; font-weight:700;"></span>
+                </div>
+
+                <div class="dt-filters">
+                    <div class="dt-genres" aria-label="Genres">
+                        <span class="chip" data-genre="10759">Action</span>
+                        <span class="chip" data-genre="18">Drama</span>
+                        <span class="chip" data-genre="27">Horror</span>
+                        <span class="chip" data-genre="16">Anime</span>
+                        <span class="chip" data-genre="10759">Adventure</span>
+                        <span class="chip" data-genre="35">Comedy</span>
+                        <span class="chip" data-genre="80">Crime</span>
+                        <span class="chip" data-genre="10749">Romance</span>
+                    </div>
+
+                    <div class="dt-providers" aria-label="Providers">
+                        <input id="provider-input" placeholder="Provider (e.g., Netflix)" />
+                        <div class="provider-list">
+                            <span class="chip provider" data-provider="CBS">CBS</span>
+                            <span class="chip provider" data-provider="The CW">The CW</span>
+                            <span class="chip provider" data-provider="HBO">HBO</span>
+                            <span class="chip provider" data-provider="FOX">FOX</span>
+                            <span class="chip provider" data-provider="ABC">ABC</span>
+                            <span class="chip provider" data-provider="NBC">NBC</span>
+                            <span class="chip provider" data-provider="Netflix">Netflix</span>
+                            <span class="chip provider" data-provider="Prime Video">Prime Video</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="search-results"></div>
         </div>
     </div>
 
     <div class="toast" id="toast">Message</div>
 
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay hidden" id="confirm-modal">
+        <div class="modal">
+            <div class="modal-body" id="confirm-message">Are you sure?</div>
+            <div class="modal-actions">
+                <button class="chip" id="confirm-cancel">Cancel</button>
+                <button class="chip" id="confirm-ok">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Episode Details Modal -->
+    <div class="modal-overlay hidden" id="details-modal">
+        <div class="modal">
+            <h3 id="details-title">Show details</h3>
+            <div class="modal-body" id="details-body">Loading...</div>
+            <div class="modal-actions"><button class="chip" onclick="closeDetails()">Close</button></div>
+        </div>
+    </div>
+
+    <input type="file" accept="application/json" id="watchlist-import-file" class="hidden" />
+
     <nav class="bottom-nav">
-        <div class="nav-item" onclick="switchTab('watchlist')"><i class="fas fa-tv"></i><span>Watchlist</span></div>
-        <div class="nav-item active" onclick="switchTab('myshows')"><i class="fas fa-calendar-check"></i><span>My Shows</span></div>
+        <div class="nav-item active" onclick="switchTab('watchlist')"><i class="fas fa-tv"></i><span>Watchlist</span></div>
+        <div class="nav-item" onclick="switchTab('myshows')"><i class="fas fa-calendar-check"></i><span>My Shows</span></div>
         <div class="nav-item" onclick="switchTab('discover')"><i class="fas fa-binoculars"></i><span>Discover</span></div>
         <div class="nav-item" onclick="switchTab('stats')"><i class="fas fa-chart-pie"></i><span>Statistics</span></div>
     </nav>
@@ -112,15 +269,19 @@
         // --- CONFIGURATION ---
         // 1. Get a FREE API Key here: https://www.themoviedb.org/settings/api
         // 2. Paste it inside the quotes below.
-        const API_KEY = 'YOUR_TMDB_API_KEY_HERE'; 
+        const API_KEY = '448272897bdc6b3e8fd9b8597d3800d5';
         const BASE_URL = 'https://api.themoviedb.org/3';
         const IMG_URL = 'https://image.tmdb.org/t/p/w200';
 
+// In-memory cache persisted to sessionStorage to reduce repeat API calls
+let showDetailsCache = {};
+try { showDetailsCache = JSON.parse(sessionStorage.getItem('wt_show_details') || '{}'); } catch(e) { showDetailsCache = {}; }
+
         // --- MOCK DATA (Fallback if no API Key) ---
         const mockData = [
-            { name: "Alchemy of Souls", poster_path: "/tcS2q6u7BqQ8m0z9l8CgA8v9g.jpg", overview: "S01E03 • Episode 3", vote_average: 8.5 },
-            { name: "The Umbrella Academy", poster_path: "/q32w24d2c2f4r4.jpg", overview: "S04E01 • The Unfolding", vote_average: 7.9 },
-            { name: "Lucifer", poster_path: "/4EYPN5mVIhKLfxGruy7Dy41dTVn.jpg", overview: "S04E01 • Everything's Okay", vote_average: 8.5 }
+            { id: 1001, name: "Alchemy of Souls", poster_path: "/tcS2q6u7BqQ8m0z9l8CgA8v9g.jpg", overview: "S01E03 • Episode 3", vote_average: 8.5, first_air_date: '2025-12-05' },
+            { id: 1002, name: "The Umbrella Academy", poster_path: "/q32w24d2c2f4r4.jpg", overview: "S04E01 • The Unfolding", vote_average: 7.9, first_air_date: '2025-12-10' },
+            { id: 1003, name: "Lucifer", poster_path: "/4EYPN5mVIhKLfxGruy7Dy41dTVn.jpg", overview: "S04E01 • Everything's Okay", vote_average: 8.5, first_air_date: '2025-12-01' }
         ];
 
         // --- APP LOGIC ---
@@ -153,15 +314,20 @@
             container.innerHTML = '';
 
             shows.forEach(show => {
-                // Generate random progress for demo visual effect
-                const progress = Math.floor(Math.random() * 100);
-                const watched = Math.floor((progress / 100) * 80);
-                const total = 80;
-                
-                // Handle different image sources (Mock vs Real API)
+                // Compute progress from watchlist or show metadata; default to zero when unknown
+                const sid = show.id || btoa((show.name||show.original_name||'').slice(0,30)).replace(/=/g,'');
+                const wlItem = getWatchlist().find(s => String(s.id) === String(sid));
+                let watched = 0, total = 0, progress = 0;
+                if (wlItem) { watched = wlItem.episodes_watched || 0; total = wlItem.total_episodes || 0; }
+                else if (typeof show.episodes_watched === 'number' || typeof show.total_episodes === 'number') { watched = show.episodes_watched || 0; total = show.total_episodes || 0; }
+                else { watched = 0; total = show.total_episodes || 0; }
+                progress = total ? Math.round((watched / total) * 100) : 0;
+                const progressTextLeft = `${watched}/${total || '-'} `;
+                const progressTextRight = total ? `${Math.max(0, total - watched)} left` : '';
                 const imageSrc = isMock && !show.poster_path.startsWith('/') 
                     ? 'https://via.placeholder.com/80x120/333/888?text=No+Img' // Fallback
                     : `${IMG_URL}${show.poster_path}`;
+                const encoded = encodeURIComponent(JSON.stringify({ id: show.id || sid, name: show.name || show.original_name || '', poster_path: show.poster_path || '', overview: show.overview || '', first_air_date: show.first_air_date || '' }));
 
                 const html = `
                 <div class="show-card">
@@ -173,42 +339,848 @@
                             <div class="progress-bar" style="width: ${progress}%;"></div>
                         </div>
                         <div class="progress-text">
-                            <span>${watched}/${total}</span>
-                            <span>${total - watched} left</span>
+                            <span>${progressTextLeft}</span>
+                            <span>${progressTextRight}</span>
                         </div>
-                        <div class="episode-btn">Episode info</div>
+                        <button class="episode-btn small" onclick="openEpisodeInfo('${sid}','${encoded}')">Episode info</button>
                     </div>
                 </div>`;
                 
                 container.innerHTML += html;
+
+                // Enhance this card using TMDB details if available (update totals/progress)
+                (async () => {
+                    try {
+                        const last = container.lastElementChild;
+                        if (show && show.id && API_KEY !== 'YOUR_TMDB_API_KEY_HERE' && last) {
+                            let details = showDetailsCache[show.id];
+                            if (!details) {
+                                const res = await fetch(`${BASE_URL}/tv/${show.id}?api_key=${API_KEY}`);
+                                if (res.ok) { details = await res.json(); showDetailsCache[show.id] = details; sessionStorage.setItem('wt_show_details', JSON.stringify(showDetailsCache)); }
+                            }
+                            if (details && typeof details.number_of_episodes === 'number') {
+                                const totalFromDetails = details.number_of_episodes;
+                                const wl = getWatchlist(); const item = wl.find(s => String(s.id) === String(show.id));
+                                const watchedCount = item ? (item.episodes_watched || 0) : 0;
+                                const bar = last.querySelector('.progress-bar');
+                                const left = last.querySelector('.progress-text span:first-child');
+                                const right = last.querySelector('.progress-text span:last-child');
+                                const pct = totalFromDetails ? Math.round((watchedCount / totalFromDetails) * 100) : 0;
+                                if (bar) bar.style.width = pct + '%';
+                                if (left) left.innerText = `${watchedCount}/${totalFromDetails}`;
+                                if (right) right.innerText = `${Math.max(0, totalFromDetails - watchedCount)} left`;
+                            }
+                        }
+                    } catch (e) { console.warn('Enhance show card failed', e); }
+                })();
             });
         }
 
-        // --- SEARCH FEATURE ---
-        async function handleSearch(e) {
-            if(e.key === 'Enter') {
-                const query = e.target.value;
-                if(!query) return;
-                
-                const container = document.getElementById('search-results');
-                container.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
+        // Render shows into a specified container (used for Discover results)
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch (e) { return dateStr; }
+        }
 
-                if (API_KEY === 'YOUR_TMDB_API_KEY_HERE') {
-                    container.innerHTML = '<p style="color:#666; text-align:center; margin-top:20px;">Search requires a valid API Key.</p>';
-                    return;
+        function renderShowsTo(containerId, shows, isMock = false, options = {}) {
+            const container = document.getElementById(containerId);
+            // append option
+            if (!options.append) container.innerHTML = '';
+
+            shows.forEach(show => {
+                // Compute progress from watchlist or show metadata; default to zero when unknown
+                const sid = show.id || btoa((show.name||show.original_name||'').slice(0,30)).replace(/=/g,'');
+                const wlItem = getWatchlist().find(s => String(s.id) === String(sid));
+                let watched = 0, total = 0, progress = 0;
+                if (wlItem) { watched = wlItem.episodes_watched || 0; total = wlItem.total_episodes || 0; }
+                else if (typeof show.episodes_watched === 'number' || typeof show.total_episodes === 'number') { watched = show.episodes_watched || 0; total = show.total_episodes || 0; }
+                else { watched = 0; total = show.total_episodes || 0; }
+                progress = total ? Math.round((watched / total) * 100) : 0;
+                const progressTextLeft = `${watched}/${total || '-'} `;
+                const progressTextRight = total ? `${Math.max(0, total - watched)} left` : '';
+                const imageSrc = isMock && !show.poster_path?.startsWith('/') 
+                    ? 'https://via.placeholder.com/80x120/333/888?text=No+Img'
+                    : `${IMG_URL}${show.poster_path}`;
+                // Ensure an id exists
+                const inWatch = isInWatchlist(sid);
+
+                // Date badge
+                const dateBadge = show.first_air_date ? `<span class="badge-date">${formatDate(show.first_air_date)}</span>` : '';
+
+                // Action button markup
+                let actionHtml = '';
+                // Prepare encoded show payload for details modal (works for API and local items)
+                const encoded = encodeURIComponent(JSON.stringify({ id: show.id || sid, name: show.name || show.original_name || '', poster_path: show.poster_path || '', overview: show.overview || '', first_air_date: show.first_air_date || '' }));
+                const episodeBtnHtml = `<button class="episode-btn small" onclick="openEpisodeInfo('${sid}','${encoded}')">Episode info</button>`;
+                // small placeholder for next-up (populated below if details available) - only show in watchlist (remove action)
+                const nextHtml = options.action === 'remove' ? `<span class="next-inline" data-next-id="${sid}" style="display:inline-block;margin-left:8px;color:#bfc7ff;font-size:13px;"></span>` : '';
+                if (options.action === 'remove') {
+                    actionHtml = `${episodeBtnHtml} ${nextHtml} <button class="episode-btn remove small" onclick="removeFromWatchlist('${sid}')">Remove</button>`;
+                } else {
+                    actionHtml = `${episodeBtnHtml} ${nextHtml} <button class="episode-btn add-btn small" data-show="${encoded}" data-id="${sid}" onclick="addToWatchlistFromEl(this)" ${inWatch? 'disabled' : ''}>${inWatch ? 'Added' : 'Add'}</button>`;
                 }
 
-                const res = await fetch(`${BASE_URL}/search/tv?api_key=${API_KEY}&query=${query}`);
+                const html = `
+                <div class="show-card">
+                    <img src="${imageSrc}" class="poster" onerror="this.src='https://via.placeholder.com/80x120/333/888?text=Image'">
+                    <div class="show-details">
+                        <div class="show-title">${show.name || show.original_name || 'Unknown'} ${dateBadge} <img class="network-logo" data-id="${sid}" /> <span class="badge-rating">${show.vote_average ? (parseFloat(show.vote_average).toFixed(1)) : ''}</span></div>
+                        <div class="episode-info">${isMock ? show.overview : (show.first_air_date || '')}</div>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: ${progress}%;"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span>${progressTextLeft}</span>
+                            <span>${progressTextRight}</span>
+                        </div>
+                        <div class="action-row">${actionHtml}</div>
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+                // enhance last inserted card: fetch/show network logo and ensure rating displays (cached)
+                const last = container.lastElementChild;
+                if (last) {
+                    const logoImg = last.querySelector('.network-logo');
+                    const ratingEl = last.querySelector('.badge-rating');
+                    (async () => {
+                        try {
+                            if (show && show.vote_average && ratingEl) { ratingEl.innerText = parseFloat(show.vote_average).toFixed(1); ratingEl.style.display = 'inline-block'; }
+                            if (logoImg && show.id && API_KEY !== 'YOUR_TMDB_API_KEY_HERE') {
+                                let details = showDetailsCache[show.id];
+                                if (!details) {
+                                    const res = await fetch(`${BASE_URL}/tv/${show.id}?api_key=${API_KEY}`);
+                                    details = await res.json();
+                                    if (details) { showDetailsCache[show.id] = details; sessionStorage.setItem('wt_show_details', JSON.stringify(showDetailsCache)); }
+                                }
+                                const network = (details && details.networks && details.networks[0]) || null;
+                                    if (network && network.logo_path) {
+                                    const logoBase = IMG_URL.replace('/w200','/w92');
+                                    logoImg.src = `${logoBase}${network.logo_path}`;
+                                    logoImg.style.display = 'inline-block';
+                                    logoImg.title = network.name;
+                                }
+                                if (ratingEl && details?.vote_average) { ratingEl.innerText = parseFloat(details.vote_average).toFixed(1); ratingEl.style.display='inline-block'; }
+
+                                // Populate next-inline if present (watchlist card) and update progress if details provide episode totals
+                                try {
+                                    const nextSpan = last.querySelector('.next-inline');
+                                    if (nextSpan) {
+                                        let nextText = '';
+                                        if (details.next_episode_to_air) {
+                                            const ne = details.next_episode_to_air;
+                                            nextText = `Next: S${ne.season_number}E${ne.episode_number}${ne.air_date ? ' · ' + formatDate(ne.air_date) : ''}`;
+                                        } else if (details.status && String(details.status).toLowerCase().includes('end')) {
+                                            nextText = 'Ended';
+                                        } else {
+                                            nextText = '';
+                                        }
+                                        nextSpan.innerText = nextText;
+                                        nextSpan.style.display = nextText ? 'inline-block' : 'none';
+                                    }
+
+                                    // Update progress display using details.number_of_episodes when available
+                                    const bar = last.querySelector('.progress-bar');
+                                    const left = last.querySelector('.progress-text span:first-child');
+                                    const right = last.querySelector('.progress-text span:last-child');
+                                    const totalFromDetails = details.number_of_episodes || details.number_of_episodes === 0 ? details.number_of_episodes : null;
+                                    const wl = getWatchlist();
+                                    const item = wl.find(s => String(s.id) === String(show.id || sid));
+                                    const watchedCount = item ? (item.episodes_watched || 0) : 0;
+                                    if (totalFromDetails && bar) {
+                                        const pct = totalFromDetails ? Math.round((watchedCount / totalFromDetails) * 100) : 0;
+                                        bar.style.width = pct + '%';
+                                        if (left) left.innerText = `${watchedCount}/${totalFromDetails}`;
+                                        if (right) right.innerText = `${Math.max(0, totalFromDetails - watchedCount)} left`;
+                                    }
+                                } catch (e) { console.warn('Populate next-up / progress failed', e); }
+                            } else {
+                                // If no API key or no numeric id but cache exists, try to use cached details
+                                try {
+                                    const details = showDetailsCache[show.id || sid];
+                                    const nextSpan = last.querySelector('.next-inline');
+                                    if (nextSpan && details) {
+                                        let nextText = '';
+                                        if (details.next_episode_to_air) {
+                                            const ne = details.next_episode_to_air;
+                                            nextText = `Next: S${ne.season_number}E${ne.episode_number}${ne.air_date ? ' · ' + formatDate(ne.air_date) : ''}`;
+                                        } else if (details.status && String(details.status).toLowerCase().includes('end')) {
+                                            nextText = 'Ended';
+                                        }
+                                        nextSpan.innerText = nextText;
+                                        nextSpan.style.display = nextText ? 'inline-block' : 'none';
+                                    }
+                                } catch(e){}
+                            }
+                        } catch (e) { console.error('Enhance card failed', e); }
+                    })();
+                }
+            });
+        }
+
+        // --- WATCHLIST HELPERS ---
+        function getWatchlist() {
+            try { return JSON.parse(localStorage.getItem('wt_watchlist') || '[]'); } catch (e) { return []; }
+        }
+        function saveWatchlist(list) { localStorage.setItem('wt_watchlist', JSON.stringify(list)); }
+        function isInWatchlist(id) { return getWatchlist().some(s => String(s.id) === String(id)); }
+
+        function addToWatchlistFromEl(el) {
+            try {
+                const data = JSON.parse(decodeURIComponent(el.dataset.show));
+                addToWatchlist(data);
+                el.disabled = true; el.innerText = 'Added';
+            } catch (e) { console.error('Invalid show data', e); }
+        }
+
+        function addToWatchlist(show) {
+            const list = getWatchlist();
+            const id = show.id || btoa((show.name||'').slice(0,30)).replace(/=/g,'');
+            if (list.some(s => String(s.id) === String(id))) { showToast('Already in watchlist'); return; }
+            const item = { id, name: show.name || show.original_name || '', poster_path: show.poster_path || '', overview: show.overview || '', first_air_date: show.first_air_date || '', // metadata
+                total_episodes: show.total_episodes || null, episodes_watched: show.episodes_watched || 0, last_watched: show.last_watched || null
+            };
+            list.unshift(item); // newest first
+            saveWatchlist(list);
+            // Enrich with TMDB details if possible
+            enrichWatchItem(id);
+            showToast('Added to Watchlist');
+            // If watchlist view is visible, re-render
+            if (!document.getElementById('view-watchlist').classList.contains('hidden')) renderWatchlist();
+        }
+
+        // Fetch extra details (total episodes) for a watchlist item and save it
+        async function enrichWatchItem(id) {
+            try {
+                const list = getWatchlist();
+                const item = list.find(s => String(s.id) === String(id));
+                if (!item || item.total_episodes) return; // already have
+                if (API_KEY === 'YOUR_TMDB_API_KEY_HERE') return;
+                const res = await fetch(`${BASE_URL}/tv/${id}?api_key=${API_KEY}`);
                 const data = await res.json();
-                
-                // Temporarily render results into the myshows view for visibility or create a list
-                // For this clone, we'll just log them or clear the list and show search results
-                // Simplest approach: reuse renderShows but target the search view container?
-                // For now, let's just replace the MyShows view to show results
-                switchTab('myshows'); // Switch back to list view
-                document.getElementById('page-title').innerText = `Results: ${query}`;
-                renderShows(data.results);
+                if (data && data.number_of_episodes) {
+                    item.total_episodes = data.number_of_episodes;
+                    saveWatchlist(list);
+                    renderWatchlist();
+                }
+            } catch (e) { console.error('Enrich failed', e); }
+        }
+
+        // Sorting helpers
+        function toggleSortMenu() {
+            const m = document.getElementById('sort-menu');
+            m.classList.toggle('hidden');
+            if (!m.classList.contains('hidden')) {
+                document.addEventListener('click', closeSortOnOutside);
+            } else {
+                document.removeEventListener('click', closeSortOnOutside);
             }
+        }
+        function closeSortOnOutside(e) {
+            const m = document.getElementById('sort-menu');
+            const btn = document.querySelector('.sort-btn');
+            if (!m.contains(e.target) && !btn.contains(e.target)) { m.classList.add('hidden'); document.removeEventListener('click', closeSortOnOutside); }
+        }
+
+        function applySort(option) {
+            const list = getWatchlist();
+            if (!list || list.length === 0) return;
+            if (option === 'alphabetical') list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+            else if (option === 'recently-watched') list.sort((a,b) => (b.last_watched||0) - (a.last_watched||0));
+            else if (option === 'newest-episode') list.sort((a,b) => (b.first_air_date||'').localeCompare(a.first_air_date||''));
+            else if (option === 'total-episodes') list.sort((a,b) => (b.total_episodes||0) - (a.total_episodes||0));
+            else if (option === 'episodes-left') list.sort((a,b) => ((a.total_episodes||0)-(a.episodes_watched||0)) - ((b.total_episodes||0)-(b.episodes_watched||0)));
+            saveWatchlist(list);
+            renderWatchlist();
+            // close menu
+            document.getElementById('sort-menu').classList.add('hidden');
+            document.removeEventListener('click', closeSortOnOutside);
+        }
+
+        // Mark watched (sets last_watched to now, optionally increment episodes_watched)
+        function markWatched(id) {
+            const list = getWatchlist();
+            const item = list.find(s => String(s.id) === String(id));
+            if (!item) return;
+            item.last_watched = Date.now();
+            // increment episodes_watched by 1 up to total_episodes if known
+            item.episodes_watched = (item.episodes_watched || 0) + 1;
+            if (item.total_episodes && item.episodes_watched > item.total_episodes) item.episodes_watched = item.total_episodes;
+            saveWatchlist(list);
+            renderWatchlist();
+            showToast('Marked watched', null, null);
+        }
+
+        // Edit progress (prompt user for number)
+        function editProgress(id) {
+            const list = getWatchlist();
+            const item = list.find(s => String(s.id) === String(id));
+            if (!item) return;
+            const current = item.episodes_watched || 0;
+            const total = item.total_episodes || '';
+            const val = prompt('Set episodes watched' + (total ? ` (0 - ${total})` : ''), current);
+            if (val === null) return;
+            const n = parseInt(val, 10);
+            if (isNaN(n) || n < 0) { showToast('Invalid number'); return; }
+            item.episodes_watched = n;
+            saveWatchlist(list);
+            renderWatchlist();
+            showToast('Progress updated');
+        }
+
+        // Prompt before removing from watchlist
+        function removeFromWatchlist(id) {
+            showConfirmModal('Remove this show from your watchlist?', () => removeFromWatchlistConfirmed(id));
+        }
+
+        function removeFromWatchlistConfirmed(id) {
+            const list = getWatchlist();
+            const removedItem = list.find(s => String(s.id) === String(id));
+            const newList = list.filter(s => String(s.id) !== String(id));
+            saveWatchlist(newList);
+            renderWatchlist();
+            // Re-enable add buttons for this id in other views
+            document.querySelectorAll(`.add-btn[data-id="${id}"]`).forEach(b => { b.disabled = false; b.innerText = 'Add'; });
+            // show undo
+            showToast('Removed from Watchlist', 'Undo', () => {
+                if (removedItem) {
+                    addToWatchlist(removedItem);
+                    renderWatchlist();
+                }
+            }, 5000);
+        }
+
+        function renderWatchlist() {
+            const list = getWatchlist();
+            const container = document.getElementById('view-watchlist');
+            if (!list || list.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Your watchlist is empty. Add shows from Discover or Search.</p>';
+                return;
+            }
+            // Watchlist controls (export/import)
+            container.innerHTML = '<div class="watchlist-controls"><button class="chip" onclick="exportWatchlist()">Export</button><button class="chip" onclick="document.getElementById(\'watchlist-import-file\').click()">Import</button></div>';
+            // render the list
+            const wrapper = document.createElement('div');
+            wrapper.id = 'watchlist-inner';
+            container.appendChild(wrapper);
+            renderShowsTo('watchlist-inner', list, false, { action: 'remove' });
+        }
+
+        // Confirmation modal helpers
+        function showConfirmModal(message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const msg = document.getElementById('confirm-message');
+            msg.innerText = message;
+            modal.classList.remove('hidden');
+            // trigger animation
+            setTimeout(() => modal.classList.add('show'), 10);
+            // attach one-time handlers
+            const ok = document.getElementById('confirm-ok');
+            const cancel = document.getElementById('confirm-cancel');
+            function cleanup() { ok.onclick = null; cancel.onclick = null; modal.classList.remove('show'); setTimeout(()=> modal.classList.add('hidden'), 200); }
+            cancel.onclick = () => { cleanup(); };
+            ok.onclick = () => { cleanup(); if (typeof onConfirm === 'function') onConfirm(); };
+        }
+
+        // Export / Import
+        function exportWatchlist() {
+            const data = getWatchlist();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'watchlist.json';
+            document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+            showToast('Watchlist exported');
+        }
+
+        document.getElementById('watchlist-import-file').addEventListener('change', async (e) => {
+            const f = e.target.files[0];
+            if (!f) return;
+            try {
+                const text = await f.text();
+                const data = JSON.parse(text);
+                if (!Array.isArray(data)) { showToast('Invalid file format'); return; }
+                // Merge without duplicates
+                const existing = getWatchlist();
+                const merged = [...data, ...existing].reduce((acc, cur) => {
+                    const id = String(cur.id || cur.name || '');
+                    if (!acc.find(x => String(x.id) === id)) acc.push(cur);
+                    return acc;
+                }, []);
+                saveWatchlist(merged);
+                renderWatchlist();
+                showToast('Watchlist imported');
+            } catch (err) {
+                console.error('Import failed', err);
+                showToast('Import failed');
+            } finally { e.target.value = ''; }
+        });
+
+        // Pagination / Load more support for Discover
+        let discoverPager = null;
+        function renderLoadMoreButton() {
+            const container = document.getElementById('search-results');
+            // remove existing
+            const existing = document.getElementById('load-more-wrap');
+            if (existing) existing.remove();
+            if (!discoverPager || discoverPager.page >= discoverPager.total_pages) return;
+            const wrap = document.createElement('div');
+            wrap.id = 'load-more-wrap';
+            wrap.className = 'load-more-container';
+            const btn = document.createElement('button');
+            btn.className = 'load-more';
+            btn.innerText = 'Load More';
+            btn.onclick = () => loadMoreDiscover();
+            wrap.appendChild(btn);
+            container.appendChild(wrap);
+        }
+
+        async function loadMoreDiscover() {
+            if (!discoverPager) return;
+            const next = discoverPager.page + 1;
+            if (discoverPager.type === 'trending') await fetchTrendingNow(next, true);
+            else if (discoverPager.type === 'returning') await fetchReturningThisWeek(next, true);
+            else if (discoverPager.type === 'new') await fetchNewThisMonth(next, true);
+            else if (discoverPager.type === 'popular') await fetchMostPopular(next, true);
+            else if (discoverPager.type === 'rating') await fetchByRating(next, true);
+            else if (discoverPager.type === 'genre') await fetchByGenre(discoverPager.genreId, next, true);
+            else if (discoverPager.type === 'provider') await fetchByProvider(discoverPager.providerName, next, true);
+        }
+
+        // Episode Details modal helpers
+        async function openEpisodeInfo(id, encodedData) {
+            const modal = document.getElementById('details-modal');
+            const body = document.getElementById('details-body');
+            const title = document.getElementById('details-title');
+            modal.classList.remove('hidden');
+            // animate in
+            setTimeout(() => modal.classList.add('show'), 10);
+            title.innerText = 'Loading...'; body.innerHTML = 'Fetching details...';
+            let data = showDetailsCache[id];
+            try {
+                // Try to fetch full details from TMDB if id is numeric and API key present
+                const numericId = Number(id);
+                if (!data && !isNaN(numericId) && API_KEY !== 'YOUR_TMDB_API_KEY_HERE') {
+                    const res = await fetch(`${BASE_URL}/tv/${numericId}?api_key=${API_KEY}`);
+                    if (res.ok) {
+                        data = await res.json();
+                        showDetailsCache[id] = data;
+                        sessionStorage.setItem('wt_show_details', JSON.stringify(showDetailsCache));
+                    }
+                }
+            } catch (err) { console.warn('Detail fetch failed', err); }
+
+            if (!data && encodedData) {
+                try { data = JSON.parse(decodeURIComponent(encodedData)); } catch (e) { data = null; }
+            }
+
+            if (!data) { title.innerText = 'Details unavailable'; body.innerHTML = '<p>No details available for this show.</p>'; return; }
+
+            title.innerText = data.name || data.original_name || 'Show details';
+            const networks = (data.networks || []).map(n => n.name).join(', ');
+            const overview = data.overview || '';
+            const seasonsCount = data.number_of_seasons || (data.seasons && data.seasons.length) || 0;
+            const episodesCount = data.number_of_episodes || 0;
+            const firstAir = data.first_air_date ? `<div><strong>First air:</strong> ${formatDate(data.first_air_date)}</div>` : '';
+
+            // Compute overall series progress from watchlist (default 0)
+            const wlItem = getWatchlist().find(s => String(s.id) === String(id));
+            const sWatched = wlItem ? (wlItem.episodes_watched || 0) : 0;
+            const sTotal = wlItem ? (wlItem.total_episodes || episodesCount) : (episodesCount || 0);
+            const sPct = sTotal ? Math.round((sWatched / sTotal) * 100) : 0;
+            // Determine next-up or ended
+            let nextText = 'No upcoming episodes';
+            if (data.next_episode_to_air) {
+                const ne = data.next_episode_to_air;
+                nextText = `Next: S${ne.season_number}E${ne.episode_number} · ${ne.name || ''}${ne.air_date ? ' • ' + formatDate(ne.air_date) : ''}`;
+            } else if (data.status && String(data.status).toLowerCase().includes('end')) {
+                nextText = 'Ended';
+            }
+
+            // Seasons overview container with series progress and next-up
+            body.innerHTML = `<div class="details-top">
+                <div class="details-overview">${overview ? `<p>${overview}</p>` : ''}${networks ? `<div><strong>Network(s):</strong> ${networks}</div>` : ''}${firstAir}</div>
+                <div class="modal-series-progress">
+                    <div class="series-progress-row"><div class="series-progress-bar"><div class="series-progress-fill" style="width:${sPct}%"></div></div><div class="series-progress-text">${sWatched}/${sTotal || '-'}</div></div>
+                    <div class="series-next">${nextText}</div>
+                </div>
+                <div class="details-actions"><button class="chip" onclick="markWatched('${id}')">Mark watched</button> <button class="chip" onclick="editProgress('${id}')">Edit progress</button></div>
+                <div id="seasons-container" class="details-seasons"></div>
+            </div>`;
+
+            // Render seasons listing
+            renderSeasonsInModal(data, id);
+        }
+
+        function closeDetails() { const modal = document.getElementById('details-modal'); modal.classList.remove('show'); setTimeout(()=> modal.classList.add('hidden'), 200); }
+
+        // --- Season & Episode UI Helpers ---
+        function renderSeasonsInModal(data, id) {
+            const container = document.getElementById('seasons-container');
+            if (!container) return;
+            const seasons = data.seasons || [];
+            if (!seasons || seasons.length === 0) { container.innerHTML = '<p style="color:#ccc;">No seasons available.</p>'; return; }
+            const wlItem = getWatchlist().find(s => String(s.id) === String(id));
+            container.innerHTML = '';
+            seasons.forEach(s => {
+                const seasonNumber = s.season_number || s.season || 0;
+                const total = s.episode_count || s.episodes || 0;
+                const watched = getSeasonWatchedCount(wlItem, seasonNumber);
+                const pct = total ? Math.round((watched/total)*100) : 0;
+                const complete = total && watched >= total;
+                const html = `<div class="season-row" data-season="${seasonNumber}" onclick="renderSeasonEpisodes('${id}', ${seasonNumber})">
+                    <div class="season-left"><div class="season-title">Season ${seasonNumber}</div></div>
+                    <div class="season-progress-wrap"><div class="season-progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><div class="season-count">${watched}/${total || '?'}</div></div>
+                </div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function getSeasonWatchedCount(item, seasonNumber) {
+            if (!item || !item.watched_map) return 0;
+            return Object.keys(item.watched_map).filter(k => k.startsWith(`S${seasonNumber}E`) && item.watched_map[k]).length;
+        }
+
+        async function renderSeasonEpisodes(id, seasonNumber) {
+            const modal = document.getElementById('details-modal');
+            const body = document.getElementById('details-body');
+            const title = document.getElementById('details-title');
+            title.innerText = `Season ${seasonNumber}`;
+            body.innerHTML = '<div class="details-header-row"><div></div><div><a href="#" onclick="renderSeasonsFromModal(\''+id+'\')" style="color:#9aa0ff">All seasons</a></div></div><div class="episode-list"><div class="spinner" style="margin:8px auto;"></div></div>';
+
+            try {
+                const res = await fetch(`${BASE_URL}/tv/${id}/season/${seasonNumber}?api_key=${API_KEY}`);
+                const data = await res.json();
+                const eps = data.episodes || [];
+                const wl = getWatchlist();
+                let item = wl.find(s => String(s.id) === String(id));
+                const container = document.createElement('div');
+                container.className = 'episode-list';
+                // Header with select all
+                const header = document.createElement('div'); header.className = 'details-header-row';
+                const left = document.createElement('div'); left.innerHTML = '';
+                const right = document.createElement('div'); right.innerHTML = `<a href="#" id="select-all-season" style="color:#9aa0ff">Select All</a>`;
+                header.appendChild(left); header.appendChild(right);
+                container.appendChild(header);
+                const list = document.createElement('div'); list.className = 'episode-list';
+                eps.forEach(ep => {
+                    const key = `S${seasonNumber}E${ep.episode_number}`;
+                    const watched = item && item.watched_map && item.watched_map[key];
+                    const row = document.createElement('div'); row.className = 'episode-row';
+                    row.innerHTML = `<div class="ep-left"><span class="ep-checkbox ${watched ? 'on' : ''}" data-key="${key}" onclick="toggleEpisodeWatched('${id}', ${seasonNumber}, ${ep.episode_number}, this);event.stopPropagation();"></span><div><div class="ep-title">${ep.name || ''}</div><div class="ep-sub">S${String(seasonNumber).padStart(2,'0')}E${String(ep.episode_number).padStart(2,'0')} ${ep.air_date ? ' • ' + formatDate(ep.air_date) : ''}</div></div></div><div class="ep-right"></div>`;
+                    list.appendChild(row);
+                });
+                container.appendChild(list);
+                body.innerHTML = ''; body.appendChild(container);
+                document.getElementById('select-all-season').addEventListener('click', (e)=>{ e.preventDefault(); toggleSelectAllSeason(id, seasonNumber, eps); });
+            } catch (err) {
+                console.error('Season fetch failed', err);
+                body.innerHTML = '<p style="color:#ccc;">Failed to load episodes.</p>';
+            }
+        }
+
+        function renderSeasonsFromModal(id) {
+            const data = showDetailsCache[id];
+            if (!data) return;
+            document.getElementById('details-title').innerText = data.name || data.original_name || 'Show details';
+            renderSeasonsInModal(data, id);
+        }
+
+        function toggleSelectAllSeason(id, seasonNumber, eps) {
+            const wl = getWatchlist();
+            let item = wl.find(s => String(s.id) === String(id));
+            if (!item) { addToWatchlist({ id, name: showDetailsCache[id]?.name || '', poster_path: showDetailsCache[id]?.poster_path || '', overview: showDetailsCache[id]?.overview || '', first_air_date: showDetailsCache[id]?.first_air_date || '' }); item = getWatchlist().find(s => String(s.id) === String(id)); }
+            if (!item.watched_map) item.watched_map = {};
+            const allWatched = eps.every(ep => item.watched_map[`S${seasonNumber}E${ep.episode_number}`]);
+            eps.forEach(ep => {
+                const key = `S${seasonNumber}E${ep.episode_number}`;
+                item.watched_map[key] = !allWatched;
+            });
+            item.episodes_watched = Object.keys(item.watched_map).filter(k => item.watched_map[k]).length;
+            saveWatchlist(wl);
+            // refresh current season view
+            renderSeasonEpisodes(id, seasonNumber);
+            renderSeasonsInModal(showDetailsCache[id], id);
+            renderWatchlist();
+            showToast(allWatched ? 'Unmarked season' : 'Marked all as watched');
+        }
+
+        function toggleEpisodeWatched(id, seasonNumber, episodeNumber, el) {
+            const key = `S${seasonNumber}E${episodeNumber}`;
+            const wl = getWatchlist();
+            let item = wl.find(s => String(s.id) === String(id));
+            if (!item) {
+                // auto add to watchlist
+                addToWatchlist({ id, name: showDetailsCache[id]?.name || '', poster_path: showDetailsCache[id]?.poster_path || '', overview: showDetailsCache[id]?.overview || '', first_air_date: showDetailsCache[id]?.first_air_date || '' });
+                item = getWatchlist().find(s => String(s.id) === String(id));
+            }
+            if (!item.watched_map) item.watched_map = {};
+            item.watched_map[key] = !item.watched_map[key];
+            item.episodes_watched = Object.keys(item.watched_map).filter(k => item.watched_map[k]).length;
+            saveWatchlist(wl);
+            // toggle UI
+            if (el) { el.classList.toggle('on'); }
+
+            // Update any visible cards for this show id to reflect new progress
+            try {
+                document.querySelectorAll('.show-card').forEach(card => {
+                    const addBtn = card.querySelector(`.add-btn[data-id="${id}"]`);
+                    const bar = card.querySelector('.progress-bar');
+                    const left = card.querySelector('.progress-text span:first-child');
+                    const right = card.querySelector('.progress-text span:last-child');
+                    if (bar) {
+                        const pct = item.total_episodes ? Math.round((item.episodes_watched / item.total_episodes) * 100) : 0;
+                        bar.style.width = pct + '%';
+                    }
+                    if (left) left.innerText = item.total_episodes ? `${item.episodes_watched}/${item.total_episodes}` : `${item.episodes_watched}/-`;
+                    if (right) right.innerText = item.total_episodes ? `${Math.max(0, item.total_episodes - item.episodes_watched)} left` : '';
+                    if (addBtn && item) { addBtn.disabled = true; addBtn.innerText = 'Added'; }
+                });
+                // Also update modal's overall progress/next-up if open
+                const modalFill = document.querySelector('.series-progress-fill');
+                const modalText = document.querySelector('.series-progress-text');
+                if (modalFill) {
+                    const pct = item.total_episodes ? Math.round((item.episodes_watched / item.total_episodes) * 100) : 0;
+                    modalFill.style.width = pct + '%';
+                }
+                if (modalText) {
+                    modalText.innerText = item.total_episodes ? `${item.episodes_watched}/${item.total_episodes}` : `${item.episodes_watched}/-`;
+                }
+            } catch (e) { console.warn('Update card progress failed', e); }
+
+            // refresh counts
+            renderSeasonsInModal(showDetailsCache[id], id);
+            renderWatchlist();
+        }
+
+        // Fetch trending TV shows and filter those released this month
+        async function fetchTrendingThisMonth() {
+            const container = document.getElementById('search-results');
+            container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Loading trending shows released this month...</p>';
+            try {
+                const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
+                const data = await res.json();
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const prefix = `${year}-${month}`;
+                const results = (data.results || []).filter(s => s.first_air_date && s.first_air_date.startsWith(prefix));
+                if (results.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">No trending releases found this month.</p>';
+                    return;
+                }
+                document.getElementById('page-title').innerText = `Trending — ${now.toLocaleString('default',{month:'long', year: 'numeric'})}`;
+                renderShowsTo('search-results', results);
+            } catch (err) {
+                console.error('Error fetching trending:', err);
+                container.innerHTML = '<p style="text-align:center;color:red;margin-top:20px;">Error loading trending shows.</p>';
+            }
+        }
+
+        // Discover toolbar & fetch helpers
+        let discoverInitialized = false;
+        function setupDiscoverToolbar() {
+            // Initialize once and attach handlers
+            if (discoverInitialized) { selectCategory('trending'); return; }
+            discoverInitialized = true;
+            document.querySelectorAll('.dt-cat').forEach(btn => {
+                btn.addEventListener('click', () => selectCategory(btn.dataset.cat));
+            });
+            document.querySelectorAll('.dt-genres .chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('.dt-genres .chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    fetchByGenre(chip.dataset.genre);
+                });
+            });
+            document.querySelectorAll('.dt-providers .provider').forEach(p => {
+                p.addEventListener('click', () => {
+                    document.querySelectorAll('.dt-providers .provider').forEach(c => c.classList.remove('active'));
+                    p.classList.add('active');
+                    fetchByProvider(p.dataset.provider);
+                });
+            });
+            const provInput = document.getElementById('provider-input');
+            provInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchByProvider(provInput.value); });
+
+            // Default
+            selectCategory('trending');
+        }
+
+        function selectCategory(cat) {
+            document.querySelectorAll('.dt-cat').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+            // clear other filters
+            document.querySelectorAll('.dt-genres .chip').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.dt-providers .provider').forEach(c => c.classList.remove('active'));
+            // hide results chip when user selects a built-in category
+            try { const rc = document.getElementById('results-chip'); if (rc) rc.classList.add('hidden'); } catch(e) {}
+            if (cat === 'trending') fetchTrendingNow();
+            else if (cat === 'returning') fetchReturningThisWeek();
+            else if (cat === 'new') fetchNewThisMonth();
+            else if (cat === 'popular') fetchMostPopular();
+            else if (cat === 'rating') fetchByRating();
+        }
+
+        async function fetchTrendingNow() {
+            const container = document.getElementById('search-results');
+            container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Loading trending shows...</p>';
+            try {
+                const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
+                const data = await res.json();
+                renderShowsTo('search-results', data.results || []);
+                document.getElementById('page-title').innerText = 'Trending Now';
+            } catch (err) {
+                console.error('Error fetching trending now:', err);
+                container.innerHTML = '<p style="text-align:center;color:red;margin-top:20px;">Error loading trending shows.</p>';
+            }
+        }
+
+        async function fetchReturningThisWeek() {
+            const container = document.getElementById('search-results');
+            container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Loading returning shows...</p>';
+            try {
+                const res = await fetch(`${BASE_URL}/tv/airing_today?api_key=${API_KEY}`);
+                const data = await res.json();
+                renderShowsTo('search-results', data.results || []);
+                document.getElementById('page-title').innerText = 'Returning This Week';
+            } catch (err) {
+                console.error('Error fetching returning shows:', err);
+                container.innerHTML = '<p style="text-align:center;color:red;margin-top:20px;">Error loading returning shows.</p>';
+            }
+        }
+
+        async function fetchNewThisMonth() {
+            const container = document.getElementById('search-results');
+            container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Loading new shows this month...</p>';
+            try {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const first = `${year}-${month}-01`;
+                const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
+                const last = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+                const res = await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&first_air_date.gte=${first}&first_air_date.lte=${last}&sort_by=popularity.desc`);
+                const data = await res.json();
+                renderShowsTo('search-results', data.results || []);
+                document.getElementById('page-title').innerText = `New This Month — ${now.toLocaleString('default',{month:'long', year: 'numeric'})}`;
+            } catch (err) {
+                console.error('Error fetching new shows:', err);
+                container.innerHTML = '<p style="text-align:center;color:red;margin-top:20px;">Error loading new shows.</p>';
+            }
+        }
+
+        async function fetchMostPopular(page = 1, append = false) {
+            const container = document.getElementById('search-results');
+            if (!append) container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Loading most popular shows...</p>';
+            try {
+                const res = await fetch(`${BASE_URL}/tv/popular?api_key=${API_KEY}&language=en-US&page=${page}`);
+                const data = await res.json();
+                // Setup pager for load more
+                discoverPager = { type: 'popular', page: data.page || 1, total_pages: data.total_pages || 1 };
+                renderShowsTo('search-results', data.results || [], false, { append });
+                document.getElementById('page-title').innerText = 'Most Popular';
+                renderLoadMoreButton();
+            } catch (err) {
+                console.error('Error fetching popular shows:', err);
+                container.innerHTML = '<p style="text-align:center;color:red;margin-top:20px;">Error loading popular shows.</p>';
+            }
+        }
+
+        // Fetch shows by rating (highest rated first) with a minimum vote count to avoid noise
+        async function fetchByRating(page = 1, append = false) {
+            const container = document.getElementById('search-results');
+            if (!append) container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Loading top rated shows...</p>';
+            try {
+                // Use discover endpoint: sort by vote_average.desc and require some votes
+                const minVotes = 50;
+                const res = await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&sort_by=vote_average.desc&vote_count.gte=${minVotes}&page=${page}`);
+                const data = await res.json();
+                discoverPager = { type: 'rating', page: data.page || 1, total_pages: data.total_pages || 1 };
+                renderShowsTo('search-results', data.results || [], false, { append });
+                document.getElementById('page-title').innerText = 'Top Rated';
+                renderLoadMoreButton();
+            } catch (err) {
+                console.error('Error fetching by rating:', err);
+                container.innerHTML = '<p style="text-align:center;color:red;margin-top:20px;">Error loading rated shows.</p>';
+            }
+        }
+
+        async function fetchByGenre(genreId) {
+            const container = document.getElementById('search-results');
+            container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Loading by genre...</p>';
+            try {
+                const res = await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc`);
+                const data = await res.json();
+                if ((data.results || []).length === 0) container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">No shows found for this genre.</p>';
+                else renderShowsTo('search-results', data.results || []);
+                document.getElementById('page-title').innerText = document.querySelector(`.dt-genres .chip[data-genre="${genreId}"]`)?.innerText || 'Genre';
+            } catch (err) {
+                console.error('Error fetching genre:', err);
+                container.innerHTML = '<p style="text-align:center;color:red;margin-top:20px;">Error loading genre shows.</p>';
+            }
+        }
+
+        async function fetchByProvider(providerName) {
+            const container = document.getElementById('search-results');
+            if (!providerName || !providerName.trim()) { container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Enter a provider name.</p>'; return; }
+            container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Looking up provider...</p>';
+            try {
+                const s = await fetch(`${BASE_URL}/search/company?api_key=${API_KEY}&query=${encodeURIComponent(providerName)}`);
+                const sd = await s.json();
+                const company = (sd.results||[])[0];
+                if (!company) { container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">Provider not found.</p>'; return; }
+                const companyId = company.id;
+                const res = await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_networks=${companyId}&sort_by=popularity.desc`);
+                const data = await res.json();
+                if ((data.results || []).length === 0) container.innerHTML = '<p style="text-align:center;color:#666;margin-top:20px;">No shows found for this provider.</p>';
+                else renderShowsTo('search-results', data.results || []);
+                document.getElementById('page-title').innerText = `Provider: ${company.name}`;
+            } catch (err) {
+                console.error('Error fetching provider:', err);
+                container.innerHTML = '<p style="text-align:center;color:red;margin-top:20px;">Error loading provider shows.</p>';
+            }
+        }
+
+        // --- SEARCH FEATURE ---
+        async function doSearch(query) {
+            const q = (query || document.getElementById('search-input').value || '').trim();
+            if (!q) return;
+            const container = document.getElementById('search-results');
+            container.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
+
+            if (API_KEY === 'YOUR_TMDB_API_KEY_HERE') {
+                container.innerHTML = '<p style="color:#666; text-align:center; margin-top:20px;">Search requires a valid API Key.</p>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${BASE_URL}/search/tv?api_key=${API_KEY}&query=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                // Render in Discover so Add buttons are available
+                switchTab('discover');
+                setupDiscoverToolbar();
+                document.getElementById('page-title').innerText = `Results: ${q}`;
+                renderShowsTo('search-results', data.results || []);
+                discoverPager = null;
+                renderLoadMoreButton();
+
+                // Show Results chip and autofocus input for convenience
+                try {
+                    const rc = document.getElementById('results-chip');
+                    if (rc) { rc.innerText = `Results: ${q}`; rc.classList.remove('hidden'); }
+                    const input = document.getElementById('search-input');
+                    if (input) { setTimeout(()=>{ input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 60); }
+                } catch(e){}
+            } catch (err) {
+                console.error('Search failed', err);
+                container.innerHTML = '<p style="color:red; text-align:center; margin-top:20px;">Search failed.</p>';
+            }
+        }
+
+        function handleSearch(e) {
+            if (e.key === 'Enter') doSearch();
         }
 
         // --- NAVIGATION & UI ---
@@ -218,29 +1190,57 @@
             
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
 
-            if(tabName === 'myshows' || tabName === 'watchlist') {
+            if(tabName === 'myshows') {
                 document.getElementById('view-myshows').classList.remove('hidden');
+                document.getElementById('view-watchlist').classList.add('hidden');
                 document.querySelectorAll('.nav-item')[1].classList.add('active');
-                document.getElementById('page-title').innerText = "Hobi";
+                document.querySelectorAll('.nav-item')[0].classList.remove('active');
+                document.getElementById('page-title').innerText = "My Shows";
                 if(document.getElementById('view-myshows').innerHTML === "") fetchShows();
+            } else if(tabName === 'watchlist') {
+                document.getElementById('view-watchlist').classList.remove('hidden');
+                document.getElementById('view-myshows').classList.add('hidden');
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+                document.querySelectorAll('.nav-item')[1].classList.remove('active');
+                document.getElementById('page-title').innerText = "Watchlist";
+                renderWatchlist();
             } 
             else if(tabName === 'discover') {
                 document.getElementById('view-discover').classList.remove('hidden');
                 document.querySelectorAll('.nav-item')[2].classList.add('active');
-                document.getElementById('page-title').innerText = "Search";
+                document.getElementById('page-title').innerText = "Discover";
+                setupDiscoverToolbar();
             }
             // ... add stats logic
         }
 
-        function showToast(msg) {
+        function showToast(msg, action, cb, duration = 3000) {
             const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.opacity = 1;
-            setTimeout(() => t.style.opacity = 0, 2000);
+            if (action) {
+                t.innerHTML = `${msg} <button id="toast-action" class="chip" style="margin-left:10px">${action}</button>`;
+            } else {
+                t.textContent = msg;
+            }
+            t.classList.add('show');
+            if (action) {
+                const a = document.getElementById('toast-action');
+                a.onclick = () => { try { if (typeof cb === 'function') cb(); } catch(e){console.error(e);} t.classList.remove('show'); };
+            }
+            setTimeout(() => t.classList.remove('show'), duration);
+        }
+
+        // Open Discover tab and focus search input
+        function openSearch() {
+            switchTab('discover');
+            // Delay slightly to allow DOM to update and view to become visible
+            setTimeout(() => {
+                const input = document.getElementById('search-input');
+                if (input) { input.focus(); input.select(); }
+            }, 120);
         }
 
         // Initial Load
-        fetchShows();
+        switchTab('watchlist');
 
     </script>
 </body>
